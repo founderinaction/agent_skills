@@ -53,6 +53,9 @@ class SkillMap:
     malformed_rows: list
 
 
+RESUME = "resume from:"
+
+
 def normalized(text):
     return " ".join(text.split()).casefold()
 
@@ -178,10 +181,23 @@ def check_questions(messages, by_message, questions, exempt, add):
                 "warning" if short else "violation")
 
 
+def resumes_saved_state(messages, questions, first_map):
+    """True when a pasted state block, not a diagnostic, precedes the first map."""
+    for i in range(first_map):
+        if messages[i]["role"] == "assistant" and questions[i]:
+            return False
+        text = normalized(messages[i]["content"])
+        if messages[i]["role"] == "user" and text.startswith(RESUME) and text[len(RESUME):].strip():
+            return True
+    return False
+
+
 def check_diagnostic(messages, maps, questions, add):
     if not maps:
         return
     first = maps[0]
+    if resumes_saved_state(messages, questions, first.index):
+        return
     count = sum(sum(p < first.start if i == first.index else True for p in questions[i])
                 for i in range(first.index + 1) if not is_confirmation(messages[i]["content"]))
     if not 3 <= count <= 5:
@@ -215,7 +231,7 @@ def answered_questions(messages, questions, previous, current):
             if reply["role"] == "assistant":
                 break
             text = command(reply["content"])
-            if text and text not in COMMANDS and not text.startswith("resume from:"):
+            if text and text not in COMMANDS and not text.startswith(RESUME):
                 count += len(eligible)
                 break
     return count

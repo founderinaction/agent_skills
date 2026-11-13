@@ -33,7 +33,7 @@ sentence of SKILL.md it enforces.
 | --- | --- | --- |
 | `one-question` | more than one question in a teaching message | violation |
 | `ends-on-question` | text after the question | violation; warning when it is a few words such as "Explain why." |
-| `diagnostic-length` | fewer than 3 or more than 5 questions before the first skill map | violation |
+| `diagnostic-length` | fewer than 3 or more than 5 questions before the first skill map; skipped when the session opens with "resume from:" followed by any text (the saved state itself is not validated) | violation |
 | `map-format` | a level outside 0-5, a bar that is not ten U+2588/U+2591 cells with two filled per level, a missing overall field, more than ten subskills (fewer than four is a warning) | violation |
 | `level-needs-two-checks` | a level raised with fewer than two answered questions since the previous map | violation |
 | `level-step` | a level raised by more than one between consecutive maps | warning |

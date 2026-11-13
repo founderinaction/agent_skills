@@ -200,6 +200,16 @@ class RuleTests(unittest.TestCase):
             self.assertEqual(len(findings), 0 if count in [3, 5] else 1)
         self.assertEqual(self.findings(lesson(diagnostic_count=6), "diagnostic-length"), [])
 
+    def test_resumed_session_needs_no_fresh_diagnostic(self):
+        restored = ("assistant", skill_map() + "\n\nWhat would you try first?")
+        state = "resume from:\n" + skill_map() + "\nNotes: mixes up the two parts."
+        self.assertEqual(self.findings(turns(("user", state), restored), "diagnostic-length"), [])
+        bare = self.findings(turns(("user", "resume from:"), restored), "diagnostic-length")
+        self.assertEqual(len(bare), 1)
+        late = turns(("user", "Teach me fractions."), ("assistant", "What is a half?"),
+                     ("user", state), restored)
+        self.assertEqual(len(self.findings(late, "diagnostic-length")), 1)
+
     def test_map_count_boundaries_preserve_narrow_topic_exception(self):
         for count, severity in [(1, "warning"), (3, "warning"), (4, None), (10, None), (11, "violation")]:
             findings = self.findings(lesson(skill_map(count=count)), "map-format")
